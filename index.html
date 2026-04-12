@@ -1,231 +1,453 @@
-
 <!DOCTYPE html>
-<html xmlns='http://www.w3.org/1999/xhtml' lang='' xml:lang=''>
+<html lang="en">
 <head>
-<meta charset='utf-8' />
-<meta name='viewport' content='width=device-width, user-scalable=no' />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,user-scalable=no"/>
 <title>Brotato</title>
-<style type='text/css'>
-body {
-touch-action: none;
-margin: 0;
-border: 0 none;
-padding: 0;
-text-align: center;
-background-color: black;
+<!-- Local Icons -->
+<link rel="icon" type="image/png" href="index.icon.png"/>
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  background:#06060f;
+  font-family:'Segoe UI',system-ui,sans-serif;
+  color:#e2e2e2;
+  height:100vh;overflow:hidden;
+  touch-action:none;
 }
-#canvas {
-display: block;
-margin: 0;
-color: white;
+
+canvas{
+  display:block;position:fixed;inset:0;
+  width:100%;height:100%;border:none;
+  background:#000;
 }
-#canvas:focus {
-outline: none;
+canvas:focus{outline:none}
+
+/* ─── Loader wrapper ─── */
+#loader{
+  position:fixed;inset:0;z-index:50;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;overflow:hidden;
+  transition:opacity 0.7s ease;
 }
-.godot {
-font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
-color: #e0e0e0;
-background-color: #3b3943;
-background-image: linear-gradient(to bottom, #403e48, #35333c);
-border: 1px solid #45434e;
-box-shadow: 0 0 1px 1px #2f2d35;
+
+/* ─── Background blobs ─── */
+.blob{
+  position:absolute;border-radius:50%;
+  filter:blur(90px);pointer-events:none;
 }
-#status {
-position: absolute;
-left: 0;
-top: 0;
-right: 0;
-bottom: 0;
-display: flex;
-justify-content: center;
-align-items: center;
-visibility: hidden;
+.b1{width:520px;height:520px;top:-160px;left:-160px;
+    background:radial-gradient(circle,rgba(255,107,53,0.11),transparent 70%);
+    animation:blobA 13s ease-in-out infinite alternate}
+.b2{width:420px;height:420px;bottom:-120px;right:-120px;
+    background:radial-gradient(circle,rgba(79,195,247,0.08),transparent 70%);
+    animation:blobB 16s ease-in-out infinite alternate}
+.b3{width:320px;height:320px;top:45%;left:55%;
+    background:radial-gradient(circle,rgba(139,92,246,0.07),transparent 70%);
+    animation:blobA 10s ease-in-out infinite alternate-reverse}
+
+@keyframes blobA{from{transform:translate(0,0) scale(1)}to{transform:translate(35px,25px) scale(1.12)}}
+@keyframes blobB{from{transform:translate(0,0) scale(1)}to{transform:translate(-25px,35px) scale(1.08)}}
+
+.grid{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.016) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.016) 1px,transparent 1px);
+  background-size:54px 54px;
 }
-#status-progress {
-width: 366px;
-height: 7px;
-background-color: #38363A;
-border: 1px solid #444246;
-padding: 1px;
-box-shadow: 0 0 2px 1px #1B1C22;
-border-radius: 2px;
-visibility: visible;
+
+/* ─── Content ─── */
+.content{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;
+  align-items:center;gap:18px;
+  width:100%;max-width:490px;
 }
-@media only screen and (orientation:portrait) {
-#status-progress {
-width: 61.8%;
+
+/* ─── Title ─── */
+.game-title{text-align:center}
+.title-text{
+  font-size:clamp(2.6rem,9vw,3.8rem);
+  font-weight:900;letter-spacing:0.24em;text-transform:uppercase;
+  background:linear-gradient(135deg,#ff6b35 0%,#f7931e 45%,#fbbf24 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:titleGlow 3s ease-in-out infinite alternate;
+  line-height:1;padding-bottom:3px;
 }
+@keyframes titleGlow{
+  from{filter:drop-shadow(0 0 6px rgba(255,107,53,0.3))}
+  to{filter:drop-shadow(0 0 24px rgba(255,107,53,0.8)) drop-shadow(0 0 50px rgba(251,191,36,0.25))}
 }
-#status-progress-inner {
-height: 100%;
-width: 0;
-box-sizing: border-box;
-transition: width 0.5s linear;
-background-color: #202020;
-border: 1px solid #222223;
-box-shadow: 0 0 1px 1px #27282E;
-border-radius: 3px;
+.title-sub{
+  margin-top:8px;font-size:0.58rem;
+  letter-spacing:0.5em;text-transform:uppercase;
+  color:rgba(255,255,255,0.18);
 }
-#status-indeterminate {
-height: 42px;
-visibility: visible;
-position: relative;
+
+/* ─── Cards ─── */
+.cards{display:flex;flex-direction:column;gap:8px;width:100%}
+
+.card{
+  background:rgba(255,255,255,0.025);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:14px;padding:14px 18px;
+  position:relative;overflow:hidden;
+  transition:border-color 0.4s,background 0.4s;
 }
-#status-indeterminate > div {
-width: 4.5px;
-height: 0;
-border-style: solid;
-border-width: 9px 3px 0 3px;
-border-color: #2b2b2b transparent transparent transparent;
-transform-origin: center 21px;
-position: absolute;
+.card.active {border-color:rgba(255,255,255,0.13)}
+.card.done   {border-color:rgba(105,240,174,0.3);background:rgba(105,240,174,0.015)}
+.card.fail   {border-color:rgba(255,82,82,0.4);background:rgba(255,82,82,0.04)}
+
+.card-glow{
+  position:absolute;inset:0;opacity:0;pointer-events:none;
+  transition:opacity 0.4s;border-radius:14px;
 }
-#status-indeterminate > div:nth-child(1) { transform: rotate( 22.5deg); }
-#status-indeterminate > div:nth-child(2) { transform: rotate( 67.5deg); }
-#status-indeterminate > div:nth-child(3) { transform: rotate(112.5deg); }
-#status-indeterminate > div:nth-child(4) { transform: rotate(157.5deg); }
-#status-indeterminate > div:nth-child(5) { transform: rotate(202.5deg); }
-#status-indeterminate > div:nth-child(6) { transform: rotate(247.5deg); }
-#status-indeterminate > div:nth-child(7) { transform: rotate(292.5deg); }
-#status-indeterminate > div:nth-child(8) { transform: rotate(337.5deg); }
-#status-notice {
-margin: 0 100px;
-line-height: 1.3;
-visibility: visible;
-padding: 4px 6px;
+.pck-card  .card-glow{background:radial-gradient(ellipse at 5% 50%,rgba(255,107,53,0.1),transparent 60%)}
+.wasm-card .card-glow{background:radial-gradient(ellipse at 5% 50%,rgba(79,195,247,0.1),transparent 60%)}
+.init-card .card-glow{background:radial-gradient(ellipse at 5% 50%,rgba(139,92,246,0.1),transparent 60%)}
+.card.active .card-glow,.card.done .card-glow{opacity:1}
+
+.card-top{
+  display:flex;align-items:flex-start;
+  justify-content:space-between;margin-bottom:10px;
+}
+.card-name{
+  font-size:0.68rem;font-weight:700;
+  letter-spacing:0.12em;text-transform:uppercase;
+  color:rgba(255,255,255,0.55);
+}
+.card-filename{
+  font-size:0.58rem;font-family:'Courier New',monospace;
+  color:rgba(255,255,255,0.2);margin-top:2px;
+}
+
+.badge{
+  font-size:0.58rem;font-weight:700;
+  letter-spacing:0.08em;text-transform:uppercase;
+  padding:3px 10px;border-radius:20px;
+  white-space:nowrap;transition:background 0.3s,color 0.3s;
+}
+
+@keyframes badgePulse{0%,100%{opacity:0.65}50%{opacity:1}}
+
+/* ─── Progress bar ─── */
+.track{
+  height:3px;background:rgba(255,255,255,0.06);
+  border-radius:99px;overflow:hidden;margin-bottom:8px;
+}
+.fill{
+  height:100%;border-radius:99px;width:0%;
+  transition:width 0.35s cubic-bezier(0.4,0,0.2,1);
+  position:relative;overflow:hidden;
+}
+.pck-card  .fill{background:linear-gradient(90deg,#ff6b35,#f7931e);box-shadow:0 0 8px rgba(255,107,53,0.55)}
+.wasm-card .fill{background:linear-gradient(90deg,#4fc3f7,#81d4fa);box-shadow:0 0 8px rgba(79,195,247,0.55)}
+.init-card .fill{background:linear-gradient(90deg,#8b5cf6,#c4b5fd);box-shadow:0 0 8px rgba(139,92,246,0.55)}
+
+.fill::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent);
+  animation:shim 2s ease-in-out infinite;
+}
+@keyframes shim{from{transform:translateX(-200%)}to{transform:translateX(200%)}}
+
+.card-meta{
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+.meta-parts{font-size:0.6rem;color:rgba(255,255,255,0.28);font-family:'Courier New',monospace}
+.meta-mb   {font-size:0.66rem;font-weight:600;color:rgba(255,255,255,0.52);font-family:'Courier New',monospace}
+
+.card-log{
+  margin-top:6px;font-size:0.59rem;font-family:'Courier New',monospace;
+  color:rgba(255,255,255,0.2);
+  height:1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* init card hidden until needed */
+.init-card{display:none}
+.init-card.show{display:block}
+
+/* ─── Status / Error ─── */
+.status-line{
+  font-size:0.63rem;color:rgba(255,255,255,0.2);
+  letter-spacing:0.07em;text-align:center;min-height:1em;
+}
+
+.err-box{
+  display:none;width:100%;
+  background:rgba(255,82,82,0.07);
+  border:1px solid rgba(255,82,82,0.25);
+  border-radius:10px;padding:12px 16px;
+}
+.err-box.show{display:block}
+.err-title{
+  font-size:0.63rem;font-weight:700;color:#ff5252;
+  text-transform:uppercase;letter-spacing:0.1em;margin-bottom:5px;
+}
+.err-msg{
+  font-size:0.68rem;color:rgba(255,140,140,0.8);
+  font-family:'Courier New',monospace;word-break:break-all;line-height:1.5;
 }
 </style>
-<link id='-gd-engine-icon' rel='icon' type='image/png' href='index.icon.png' />
-<link rel='apple-touch-icon' href='index.apple-touch-icon.png'/>
 </head>
 <body>
-<canvas id='canvas'>
-HTML5 canvas appears to be unsupported in the current browser.<br />
-Please try updating or use a different browser.
-</canvas>
-<div id='status'>
-<div id='status-progress' style='display: none;' oncontextmenu='event.preventDefault();'><div id ='status-progress-inner'></div></div>
-<div id='status-indeterminate' style='display: none;' oncontextmenu='event.preventDefault();'>
-<div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-</div>
-<div id='status-notice' class='godot' style='display: none;'></div>
-</div>
-<script type='text/javascript' src='index.js'></script>
-<script type='text/javascript'>
-	const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":205270016,"index.wasm":26156492},"focusCanvas":true,"gdnativeLibs":[]};
-	var engine = new Engine(GODOT_CONFIG);
+<canvas id="canvas"></canvas>
 
-	(function() {
-		const INDETERMINATE_STATUS_STEP_MS = 100;
-		var statusProgress = document.getElementById('status-progress');
-		var statusProgressInner = document.getElementById('status-progress-inner');
-		var statusIndeterminate = document.getElementById('status-indeterminate');
-		var statusNotice = document.getElementById('status-notice');
-		var initializing = true;
-		var statusMode = 'hidden';
-		var animationCallbacks = [];
+<div id="loader">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="grid"></div>
 
-		function animate(time) {
-			animationCallbacks.forEach(callback => callback(time));
-			requestAnimationFrame(animate);
-		}
-		requestAnimationFrame(animate);
+  <div class="content">
 
-		function setStatusMode(mode) {
-			if (statusMode === mode || !initializing) return;
-			[statusProgress, statusIndeterminate, statusNotice].forEach(elem => { elem.style.display = 'none'; });
-			animationCallbacks = animationCallbacks.filter(value => value != animateStatusIndeterminate);
-			switch (mode) {
-				case 'progress':
-					statusProgress.style.display = 'block';
-					break;
-				case 'indeterminate':
-					statusIndeterminate.style.display = 'block';
-					animationCallbacks.push(animateStatusIndeterminate);
-					break;
-				case 'notice':
-					statusNotice.style.display = 'block';
-					break;
-				case 'hidden':
-					break;
-				default:
-					throw new Error('Invalid status mode');
-			}
-			statusMode = mode;
-		}
+    <div class="game-title">
+      <div class="title-text">BROTATO</div>
+      <div class="title-sub">Loading Resources</div>
+    </div>
 
-		function animateStatusIndeterminate(ms) {
-			var i = Math.floor(ms / INDETERMINATE_STATUS_STEP_MS % 8);
-			if (statusIndeterminate.children[i].style.borderTopColor == '') {
-				Array.prototype.slice.call(statusIndeterminate.children).forEach(child => { child.style.borderTopColor = ''; });
-				statusIndeterminate.children[i].style.borderTopColor = '#dfdfdf';
-			}
-		}
+    <div class="cards">
 
-		function setStatusNotice(text) {
-			while (statusNotice.lastChild) { statusNotice.removeChild(statusNotice.lastChild); }
-			var lines = text.split('\n');
-			lines.forEach((line) => {
-				statusNotice.appendChild(document.createTextNode(line));
-				statusNotice.appendChild(document.createElement('br'));
-			});
-		};
+      <!-- PCK card -->
+      <div class="card pck-card" id="pck-card">
+        <div class="card-glow"></div>
+        <div class="card-top">
+          <div>
+            <div class="card-name">Game Data</div>
+            <div class="card-filename">index.pck &nbsp;&bull;&nbsp; 11 parts &nbsp;&bull;&nbsp; 195.8 MB</div>
+          </div>
+          <div class="badge" id="pck-badge"
+            style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.3)">Waiting</div>
+        </div>
+        <div class="track"><div class="fill" id="pck-fill"></div></div>
+        <div class="card-meta">
+          <div class="meta-parts" id="pck-parts">0 / 11 parts</div>
+          <div class="meta-mb"   id="pck-mb">0.0 / 195.8 MB</div>
+        </div>
+        <div class="card-log" id="pck-log">Queued...</div>
+      </div>
 
-		function displayFailureNotice(err) {
-			var msg = err.message || err;
-			console.error(msg);
-			setStatusNotice(msg);
-			setStatusMode('notice');
-			initializing = false;
-		};
+      <!-- WASM card -->
+      <div class="card wasm-card" id="wasm-card">
+        <div class="card-glow"></div>
+        <div class="card-top">
+          <div>
+            <div class="card-name">Engine</div>
+            <div class="card-filename">index.wasm &nbsp;&bull;&nbsp; 2 parts &nbsp;&bull;&nbsp; 24.9 MB</div>
+          </div>
+          <div class="badge" id="wasm-badge"
+            style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.3)">Waiting</div>
+        </div>
+        <div class="track"><div class="fill" id="wasm-fill"></div></div>
+        <div class="card-meta">
+          <div class="meta-parts" id="wasm-parts">0 / 2 parts</div>
+          <div class="meta-mb"   id="wasm-mb">0.0 / 24.9 MB</div>
+        </div>
+        <div class="card-log" id="wasm-log">Queued...</div>
+      </div>
 
-		async function fetchAndMerge(filename, partsCount, isPadded) {
-			const parts = [];
-			for (let i = 1; i <= partsCount; i++) {
-				const suffix = isPadded ? i.toString().padStart(2, '0') : i;
-				const response = await fetch(`${filename}.part${suffix}`);
-				if (!response.ok) throw new Error(`Failed to fetch ${filename} part ${suffix}`);
-				parts.push(await response.arrayBuffer());
-			}
-			return URL.createObjectURL(new Blob(parts));
-		}
+      <!-- Engine init card (shown after files are ready) -->
+      <div class="card init-card" id="init-card">
+        <div class="card-glow"></div>
+        <div class="card-top">
+          <div>
+            <div class="card-name">Starting Engine</div>
+            <div class="card-filename">Godot Runtime &nbsp;&bull;&nbsp; WebGL</div>
+          </div>
+          <div class="badge" id="init-badge"
+            style="background:rgba(139,92,246,0.15);color:#a78bfa;animation:badgePulse 1.5s ease-in-out infinite">Init</div>
+        </div>
+        <div class="track"><div class="fill" id="init-fill"></div></div>
+        <div class="card-meta">
+          <div class="meta-parts" id="init-parts">Initializing...</div>
+          <div class="meta-mb"   id="init-mb"></div>
+        </div>
+      </div>
 
-		if (!Engine.isWebGLAvailable()) {
-			displayFailureNotice('WebGL not available');
-		} else {
-			setStatusMode('indeterminate');
-			
-			(async () => {
-				try {
-					const [mergedPck, mergedWasm] = await Promise.all([
-						fetchAndMerge("index.pck", 11, true),
-						fetchAndMerge("index.wasm", 2, false)
-					]);
+    </div><!-- /cards -->
 
-					engine.startGame({
-						'executable': mergedWasm,
-						'mainPack': mergedPck,
-						'onProgress': function (current, total) {
-							if (total > 0) {
-								statusProgressInner.style.width = current/total * 100 + '%';
-								setStatusMode('progress');
-								if (current === total) {
-									setTimeout(() => { setStatusMode('indeterminate'); }, 500);
-								}
-							} else {
-								setStatusMode('indeterminate');
-							}
-						},
-					}).then(() => {
-						setStatusMode('hidden');
-						initializing = false;
-					}, displayFailureNotice);
-				} catch (e) {
-					displayFailureNotice(e);
-				}
-			})();
-		}
-	})();
+    <div class="status-line" id="status-line">Starting...</div>
+
+    <div class="err-box" id="err-box">
+      <div class="err-title">&#9888; Load Failed</div>
+      <div class="err-msg" id="err-msg"></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /loader -->
+
+<!-- Local Script -->
+<script src="index.js"></script>
+<script>
+// CDN constant is now set to current directory
+const CDN = './';
+const MB  = 1048576;
+const fmt = b => (b / MB).toFixed(1);
+
+const GODOT_CONFIG = {
+  args: [], canvasResizePolicy: 2, executable: 'index',
+  experimentalVK: false,
+  fileSizes: { 'index.pck': 205270016, 'index.wasm': 26156492 },
+  focusCanvas: true, gdnativeLibs: []
+};
+
+/* ── helpers ── */
+const $  = id => document.getElementById(id);
+const tx = (id, v) => { const e = $(id); if (e) e.textContent = v; };
+const fw = (id, p) => { const e = $(id); if (e) e.style.width = Math.min(100, p) + '%'; };
+
+function setStatus(msg) { tx('status-line', msg); }
+
+function setBadge(key, label, bg, color, pulse) {
+  const b = $(key + '-badge');
+  if (!b) return;
+  b.textContent = label;
+  b.style.background = bg;
+  b.style.color      = color;
+  b.style.animation  = pulse ? 'badgePulse 1.5s ease-in-out infinite' : 'none';
+}
+
+function cardState(key, state) {
+  const c = $(key + '-card');
+  if (!c) return;
+  c.classList.remove('active', 'done', 'fail');
+  if (state !== 'idle') c.classList.add(state);
+}
+
+const BADGE = {
+  pck:  { bg: 'rgba(255,107,53,0.15)',  color: '#ff8c5f' },
+  wasm: { bg: 'rgba(79,195,247,0.15)',  color: '#4fc3f7' },
+  ok:   { bg: 'rgba(105,240,174,0.15)', color: '#69f0ae' },
+  err:  { bg: 'rgba(255,82,82,0.15)',   color: '#ff5252' },
+  idle: { bg: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)' }
+};
+
+function showError(msg) {
+  $('err-box').classList.add('show');
+  tx('err-msg', msg);
+  setStatus('Load failed. See above for details.');
+}
+
+/* ── fetch + merge all parts for one file ── */
+async function fetchParts(key, filename, count, padded, totalBytes) {
+  const bk = BADGE[key];
+  cardState(key, 'active');
+  setBadge(key, 'Loading', bk.bg, bk.color, true);
+
+  const parts = [];
+  let fetched = 0;
+
+  for (let i = 1; i <= count; i++) {
+    const suffix  = padded ? String(i).padStart(2, '0') : String(i);
+    const part    = `${filename}.part${suffix}`;
+    tx(key + '-log', '\u21b3 Fetching ' + part);
+
+    const resp = await fetch(CDN + part);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status} \u2014 ${part}`);
+
+    const buf = await resp.arrayBuffer();
+    parts.push(buf);
+    fetched += buf.byteLength;
+
+    fw(key + '-fill', (fetched / totalBytes) * 100);
+    tx(key + '-parts', `${i} / ${count} parts`);
+    tx(key + '-mb',    `${fmt(fetched)} / ${fmt(totalBytes)} MB`);
+  }
+
+  /* concatenate ArrayBuffers */
+  const merged = new Uint8Array(parts.reduce((s, b) => s + b.byteLength, 0));
+  let offset = 0;
+  for (const p of parts) { merged.set(new Uint8Array(p), offset); offset += p.byteLength; }
+
+  cardState(key, 'done');
+  setBadge(key, 'Ready', BADGE.ok.bg, BADGE.ok.color, false);
+  fw(key + '-fill', 100);
+  tx(key + '-log', `\u2713 ${count} parts \u2014 ${fmt(fetched)} MB`);
+
+  return merged.buffer;
+}
+
+/* ── main ── */
+(async () => {
+  if (!Engine.isWebGLAvailable()) {
+    showError('WebGL is unavailable. Try a different browser or enable hardware acceleration in your browser settings.');
+    return;
+  }
+
+  try {
+    setStatus('Loading local resources...');
+
+    /* fetch both files in parallel, each sequentially by part */
+    const [pckBuf, wasmBuf] = await Promise.all([
+      fetchParts('pck',  'index.pck',  11, true,  205270016),
+      fetchParts('wasm', 'index.wasm',  2, false,  26156492)
+    ]);
+
+    setStatus('Assembling engine...');
+
+    /* blob URL for the pck */
+    const pckUrl = URL.createObjectURL(
+      new Blob([pckBuf], { type: 'application/octet-stream' })
+    );
+
+    /* Intercept window.fetch for the merged wasm */
+    const _fetch = window.fetch.bind(window);
+    window.fetch = function (input, init) {
+      const url = input instanceof Request ? input.url : String(input);
+      if (/index\.wasm$/.test(url)) {
+        return Promise.resolve(new Response(
+          new Blob([wasmBuf], { type: 'application/wasm' }),
+          { status: 200, headers: { 'Content-Type': 'application/wasm' } }
+        ));
+      }
+      return _fetch(input, init);
+    };
+
+    /* show init card */
+    $('init-card').classList.add('show');
+    cardState('init', 'active');
+
+    const engine = new Engine(GODOT_CONFIG);
+
+    await engine.startGame({
+      executable: CDN + 'index',   /* Local index.worker.js */
+      mainPack:   pckUrl,
+      onProgress(current, total) {
+        if (total > 0) {
+          const pct = (current / total) * 100;
+          fw('init-fill', pct);
+          tx('init-parts', `${fmt(current)} / ${fmt(total)} MB`);
+          tx('init-mb',    Math.round(pct) + '%');
+        }
+      }
+    });
+
+    /* ── game started ── */
+    cardState('init', 'done');
+    setBadge('init', 'Ready', BADGE.ok.bg, BADGE.ok.color, false);
+    setStatus('');
+
+    const loader = $('loader');
+    loader.style.opacity = '0';
+    loader.style.pointerEvents = 'none';
+    setTimeout(() => { loader.style.display = 'none'; }, 750);
+
+  } catch (e) {
+    console.error('[Brotato loader]', e);
+    ['pck', 'wasm', 'init'].forEach(k => {
+      const b = $(k + '-badge');
+      if (b && b.textContent === 'Loading') {
+        cardState(k, 'fail');
+        setBadge(k, 'Error', BADGE.err.bg, BADGE.err.color, false);
+        tx(k + '-log', '\u26a0 Failed');
+      }
+    });
+    showError(e.message || String(e));
+  }
+})();
 </script>
 </body>
 </html>
