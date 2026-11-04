@@ -1,4 +1,6 @@
-# brotato (1.1.15.3 ported by hazza)
+# brotato (1.2.0.0 ported by hazza)
 i just replaced the pck files with more updated ones 
 
-this has all pain no gain update
+this has all dlc
+so abyssal terrors
+and primal dread
